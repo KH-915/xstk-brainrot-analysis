@@ -3,8 +3,8 @@ import numpy as np
 from scipy.stats import skew, zscore, quantile
 from sklearn.ensemble import IsolationForest
 
-def readDf(filename="data/data.csv"):
-    df = pd.read_csv(filename)
+def readDf(filepath="data/data.csv"):
+    df = pd.read_csv(filepath)
     if df.empty:
         raise Exception("CSV File Unavailable!")
     print(f"Read Dataframe:\n{df.head()}")
@@ -56,3 +56,7 @@ def cleanDf(df:pd.DataFrame, col='internet_access_hours', threshold=3, debug=Tru
     if debug:
         print(f" Found {len(outliersIdx)} outliers.")
     return outliersIdx, msg
+
+def exportCSV(df:pd.DataFrame, filepath="data/cleaned.csv"):
+    df.to_csv(filepath)
+
