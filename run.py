@@ -2,9 +2,9 @@ import argparse
 
 from src.BrainrotAnalysis import *
 
-def run_cleaning(filepath, debug):
+def run_cleaning(filepath):
     """Handles the data cleaning process."""
-    df = dataCleaning(filepath=filepath, debug=debug)
+    df = dataCleaning(filepath)
     return df
 
 def run_test(mode, filepath):
@@ -18,7 +18,6 @@ if __name__ == "__main__":
 
     clean_parser = subparsers.add_parser("clean", help="Clean the dataset and export it.")
     clean_parser.add_argument("-f", "--filepath", type=str, default="data/data.csv")
-    clean_parser.add_argument("-d", "--debug", type=bool, default=False)
 
     test_parser = subparsers.add_parser("test", help="Test the dataset")
     test_parser.add_argument("-f", "--filepath", type=str, default="data/data.csv")
@@ -27,7 +26,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if args.command == "clean":
-        run_cleaning(args.filepath, args.debug, args.debug)
+        run_cleaning(args.filepath)
     elif args.command == "test":
         run_test(args.mode, args.filepath)
     else:

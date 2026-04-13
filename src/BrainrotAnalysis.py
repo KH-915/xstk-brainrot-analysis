@@ -8,111 +8,132 @@ import os
 # --------Helper Functions--------
 def readDf(filepath="data/data.csv"):
     if not os.path.exists(filepath):
-        raise FileNotFoundError(f"Cannot find the file at: {filepath}")
+        raise FileNotFoundError(f"\nCannot find the file at: {filepath}")
         
     df = pd.read_csv(filepath)
     
     if df.empty:
         raise ValueError("CSV File Unavailable!")
-    
-    # 1. Safely force conversion on columns that look like numbers
-    # 'errors="ignore"' leaves columns that are purely text (like names) alone
-    df = df.apply(pd.to_numeric, errors='ignore')
-    
-    # 2. Grab all resulting numeric columns and ensure they are floats
-    numeric_cols = df.select_dtypes(include='number').columns
-    df[numeric_cols] = df[numeric_cols].astype(float)
-    
-    print(f"Read Dataframe successfully. Preview:\n{df.head()}")
+
+    print(f"\nRead Dataframe successfully. Shape: {df.shape}")
+    print(df.head())
     return df
 
-def cleanEachColumn(df:pd.DataFrame, filepath="data/data.csv", col='internet_access_hours', threshold=3, debug=True):
-    # Strip all periods from the string before converting
-    if df.empty:
-        readDf(filepath)
-        
-    df[col] = df[col].astype(str).str.replace('.', '', regex=False)
+def report_missing_values(df):
+    """Calculates and prints the missing value percentages for the report."""
+    print("="*50)
+    print("\n--- MISSING VALUES REPORT ---\n")
+    
+    missing_counts = df.isna().sum()
+    missing_percent = (df.isna().mean() * 100).round(2)
+    
+    missing_df = pd.DataFrame({'Missing Count': missing_counts, 'Percentage (%)': missing_percent})
+    missing_df = missing_df[missing_df['Missing Count'] > 0]
+    
+    if missing_df.empty:
+        print("No missing values found in the dataset.")
+        print("Report Justification: 'Data was complete; no missing value imputation was required.'")
+    else:
+        print(missing_df)
+        print("\nReport Justification: 'Missing values were handled via imputation (mean/median depending on distribution skewness) to preserve the dataset size and statistical power, ensuring we maintain at least 500 observations as required.'")
+    print("="*50 + "\n")
+
+def cleanEachColumn(df: pd.DataFrame, col: str, treatment='impute', threshold=3):
+    """Detects and handles outliers dynamically based on skewness."""
+    
+    # Ensure column is numeric before proceeding
     numeric_series = pd.to_numeric(df[col], errors='coerce')
     data = numeric_series.dropna()
+    
+    if len(data) == 0:
+        return df # Skip if column is entirely empty or non-numeric
     
     # Calculate Skewness
     skewness = stats.skew(data)
     absSkew = abs(skewness)
-    outliersIdx = pd.Index([])
-    msg = ""
-
+    outliersIdx = pd.Index([], dtype=int)
+    
+    print(f"\nAnalyzing Column: '{col}'")
+    
+    # 1. Choose Detection Method & Imputation Value Based on Skewness
     if absSkew < 0.5:
-        if debug: print(f"Skewness: {skewness:.2f} (< 0.5): Using Z-Score")
-        msg = "Z-Score"
+        method = "Z-Score"
+        justification = f"Skewness is {skewness:.2f} (< 0.5), indicating a symmetric distribution. Z-Score (threshold={threshold}) was used for detection. Outliers were imputed using the Mean."
         z_scores = np.abs(stats.zscore(data))
         outliersIdx = data[z_scores > threshold].index
-
+        impute_val = data.mean() # Mean is safe for symmetric data
+        
     elif 0.5 <= absSkew <= 2.0:
-        if debug: print(f"Skewness: {skewness:.2f} (0.5 - 2.0): Using IQR")
-
-        msg = "IQR"
+        method = "IQR"
+        justification = f"Skewness is {skewness:.2f} (between 0.5 and 2.0), indicating moderate skew. IQR was used as it is robust to skewed tails. Outliers were imputed using the Median."
         Q1 = data.quantile(0.25)
         Q3 = data.quantile(0.75)
         IQR = Q3 - Q1
         lbound = Q1 - 1.5 * IQR
         rbound = Q3 + 1.5 * IQR
-        
         outliersIdx = data[(data < lbound) | (data > rbound)].index
-        if debug: print(f" Q1={Q1}, Q3={Q3} | Range: ({lbound:.2f}, {rbound:.2f})")
+        impute_val = data.median() # Median is better for skewed data
 
     else:
-        if debug: print(f"Skewness: {skewness:.2f} (> 2.0): Using Isolation Forest")
-        msg = "Isolation Forest"
+        method = "Isolation Forest"
+        justification = f"Skewness is {skewness:.2f} (> 2.0), indicating heavy skew. Isolation Forest was used for robust anomaly detection. Outliers were imputed using the Median."
         X = data.values.reshape(-1, 1)
         iso_forest = IsolationForest(contamination=0.05, random_state=42)
         preds = iso_forest.fit_predict(X)
         outliersIdx = data[preds == -1].index
+        impute_val = data.median() # Median is required for heavily skewed data
 
-    if debug: print(f" Found {len(outliersIdx)} outliers.")
-    return outliersIdx, msg
+    print(f" - Detection Method: {method}")
+    print(f" - Found {len(outliersIdx)} outliers.")
+    print(f" - Report Justification: '{justification}'")
 
-def exportCSV(df:pd.DataFrame, filepath="data/cleaned.csv"):
-    df.to_csv(filepath)
+    # 2. Apply Treatment
+    if len(outliersIdx) > 0:
+        if treatment == 'impute':
+            df.loc[outliersIdx, col] = impute_val
+            print(f" - Action: Replaced outliers with {impute_val:.2f}")
+        elif treatment == 'remove':
+            df.drop(outliersIdx, inplace=True)
+            print(f" - Action: Dropped {len(outliersIdx)} rows.")
+            
+    # 3. Always handle remaining NaNs (Missing Values) with the appropriate center metric
+    missing_count = df[col].isna().sum()
+    if missing_count > 0:
+        df[col] = df[col].fillna(impute_val)
+        print(f" - Action: Filled {missing_count} missing values with {impute_val:.2f}")
 
-def printDf(df: pd.DataFrame):
-    numeric_df = df.select_dtypes(include=[np.number])
-    numeric_df.plot()
-    plt.show()
+    return df
+
+def exportCSV(df: pd.DataFrame, filepath="data/cleaned.csv"):
+    # Ensure directory exists
+    os.makedirs(os.path.dirname(filepath), exist_ok=True)
+    df.to_csv(filepath, index=False)
+    print(f"\nCleaned dataset exported successfully to {filepath}")
+
 # --------Parts--------
 
-# Part 2
-def dataCleaning(filepath, debug):
+# Part 2: Data Cleaning Execution
+def dataCleaning(filepath):
     try:
-        print(f"Input filepath {filepath}, debug {debug}")
-        # Read file
+        print(f"\nInput filepath: {filepath}")
         df = readDf(filepath)
+        print("\n- PART 2 -")
+        # 1. Report Missing Values (Required by Rubric)
+        report_missing_values(df)
+        
         numeric_cols = df.select_dtypes(include=['number']).columns.tolist()
-        print(f"Numeric Columns: {numeric_cols}")
-
-        # Clean file
+        
+        # 2. Clean each numerical column
+        print("--- OUTLIER HANDLING ---")
         for col in numeric_cols:
-            # 1. THE FIX: Force the entire column in df to be numeric floats. 
-            # This destroys the 'str' dtype and turns any text into NaN.
-            df[col] = pd.to_numeric(df[col], errors='coerce')
-            
-            # 2. Now run your outlier detection
-            outliers, msg = cleanEachColumn(df, col=col, debug=debug)
-            print(f"- Cleaning column: {col} Using {msg}")
+            # We pass the dataframe to update it in place, using 'impute' as the default treatment
+            df = cleanEachColumn(df, col=col, treatment='impute')
 
-            if len(outliers) > 0:
-                # 3. Calculate mean from the good rows
-                col_mean = df.loc[~df.index.isin(outliers), col]
-                # print(type(col_mean))
-                col_mean = col_mean.astype(float)
-                col_mean = np.mean(col_mean)
-                # 4. Replace outliers with the mean
-                df.loc[outliers, col] = col_mean
-                print(f" -> Replaced {len(outliers)} outliers with mean value: {col_mean:.2f}")
-        printDf(df)
         exportCSV(df)
+        return df
         
     except Exception as e:
-        print(f"Error occurs at {e}")
+        print(f"Error occurs at: {e}")
 # Part 3
     # Task 1
 def estimate(df:pd.DataFrame, col='social_media_hours', confidence_level=0.95, sample_mean=0):
@@ -206,15 +227,10 @@ def livingAreaVsIncomeLevel(filename='data/cleaned.csv'):
         print(f"Reject H0 (P-value = {p_value:.3f} >= 0.05)")
         print("With confidence level of 95%, there is no relations between living area and income level.")
 
+    # Task 3
 def correlation():
     pass
 
 def linearRegression():
     pass
 
-    # Task 3
-def correlation():
-    pass
-
-def regression():
-    pass
