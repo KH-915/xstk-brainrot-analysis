@@ -2,15 +2,14 @@ import argparse
 
 from src.BrainrotAnalysis import *
 
-def run_cleaning(filepath):
+def run_cleaning(filepath='data/cleaned.csv'):
     """Handles the data cleaning process."""
     df = dataCleaning(filepath)
     return df
 
-def run_test(mode, filepath):
-    if mode==0: difInSocialMediaByGender(filepath)
-    elif mode==1: livingAreaVsIncomeLevel(filepath)
-
+def run_test(mode=0, filepath='data/cleaned.csv'):
+    testings(filename=filepath, mode=mode)
+    
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Data processing utility.")
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
@@ -30,5 +29,5 @@ if __name__ == "__main__":
     elif args.command == "test":
         run_test(args.mode, args.filepath)
     else:
-        parser.print_help()
-
+        filepath = run_cleaning()
+        run_test(filepath=filepath)
