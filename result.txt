@@ -44,55 +44,83 @@ Result: [53.653, 53.845]
 
 [Test 1: One-Way ANOVA]
 ------------------------------------------------------------
-Research question: Are there any differences in social media usage time among different gender groups?
-H0: With a confidence level of 95%, there is no difference in mean social media usage across genders.
+Research question: Are there any differences in short video consumption time among different family income levels?
+H0: With a confidence level of 95%, there is no difference in mean short video usage across income levels.
 ------------------------------------------------------------
 === CONCLUSION ===
-F-Statistic: 1.436
-P-value: 0.238
-Fail to Reject H0 (P-value = 0.238 >= 0.05)
-=> No significant difference across gender groups.
+F-Statistic: 32.502
+P-value: 0.000
+Reject H0 (P-value = 0.000 < 0.05)
+=> Significant difference exists across family income levels.
 
 ==================================================
 [Test 2: Chi-Square Test of Independence]
 === Contingency Table ===
 brain_rot_level   Low  Moderate
-urban_rural                    
-Rural            3935       385
-Urban            4700       674
+gender                         
+Female           4193       535
+Male             4260       500
+Other             182        24
 ------------------------------------------------------------
-Research question: Is there any relations between living area and brainrot level?
-H0: With a confidence level of 95%, there is no relations between living area and brainrot level.
+Research question: Is there any relationship between gender and brain rot level?
+H0: With a confidence level of 95%, there is no relationship between gender and brain rot level.
 ------------------------------------------------------------
 === CONCLUSION ===
-Chi-square: 32.05
-P-value: 1.49910e-08
-Reject H0 (P-value = 1.499e-08 < 0.05)
-=> With a confidence level of 95%, there is relations between living area and brainrot level.
+Chi-square: 1.72
+P-value: 4.23426e-01
+Fail to Reject H0 (P-value = 4.234e-01 >= 0.05)
+=> With a confidence level of 95%, there is no relationship between gender and brain rot level.
 
 ==================================================
 [Test 3: Welch's Two-Sample T-Test]
 ------------------------------------------------------------
-Research question: Is there a significant difference in social media usage time between males and females?
-H0: With a confidence level of 95%, mean social media usage for Males = Females.
+Research question: Is there a significant difference in attention span between students in Urban and Rural areas?
+H0: With a confidence level of 95%, mean attention span for Urban = Rural.
 ------------------------------------------------------------
 === CONCLUSION ===
-T-statistic: -0.662
-P-value: 0.508
-Fail to Reject H0 (P-value = 0.508 >= 0.05)
-=> No significant difference.
+T-statistic: -2.262
+P-value: 0.024
+Reject H0 (P-value = 0.024 < 0.05)
+=> Significant difference in attention span between Urban and Rural areas.
 
 ==================================================
 [Test 4: One-Sample T-Test]
 ------------------------------------------------------------
-Research question: Is the true average attention span of the population equal to 50 minutes?
-H0: With a confidence level of 95%, the true average attention span = 50 minutes.
+Research question: Is the true average daily internet access of the population equal to 5.0 hours?
+H0: With a confidence level of 95%, the true average internet access = 5.0 hours.
 ------------------------------------------------------------
 === CONCLUSION ===
-T-statistic: 76.750
-P-value: 0.00000e+00
+T-statistic: -1.164
+P-value: 2.44398e-01
+Fail to Reject H0 (P-value = 2.444e-01 >= 0.05)
+=> Average internet access is approximately 5.0 hours.
+
+==================================================
+- Part 3 Task 3: Correlation Analysis -
+==================================================
+------------------------------------------------------------
+Research question: Is there a linear relationship between 'social_media_hours' and 'attention_span_minutes'?
+H0: With a confidence level of 95%, there is no linear correlation (rho = 0).
+------------------------------------------------------------
+=== CONCLUSION ===
+Variables: X='social_media_hours', Y='attention_span_minutes' | n=9694
+Pearson r: -0.3974 | P-value: 0.0000e+00
 Reject H0 (P-value = 0.000e+00 < 0.05)
-=> Average attention span significantly deviates from 50 minutes.
+=> Significant NEGATIVE linear relationship exists.
+-> Scatterplot saved to 'graphics/correlation_scatter.png'
+
+==================================================
+- Part 3 Task 3: Simple Linear Regression -
+==================================================
+------------------------------------------------------------
+Modeling Relationship: attention_span_minutes ~ social_media_hours
+------------------------------------------------------------
+=== MODEL PARAMETERS ===
+Equation: Y = 59.0274 + (-1.5834 * X)
+R-squared: 0.1579
+Slope p-value: 0.0000e+00
+=> Interpretation: 15.79% of variance in attention span is explained by social media usage.
+-> Residual plot saved to 'graphics/residual_plot.png'
 
 ==================================================
 Execution complete. All logs saved to result.txt.

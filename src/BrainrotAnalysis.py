@@ -208,86 +208,89 @@ def testings(filepath='data/cleaned.csv'):
     
     df = pd.read_csv(filepath)
     
-    # 3.2.1 ANOVA: Social Media by Gender (3 Groups)
+    # 3.2.1 ANOVA: Short Video Hours by Family Income Level (3 Groups)
     print("\n[Test 1: One-Way ANOVA]")
-    male_data = df[df['gender'] == 'Male']['social_media_hours'].dropna()
-    female_data = df[df['gender'] == 'Female']['social_media_hours'].dropna()
-    other_data = df[df['gender'] == 'Other']['social_media_hours'].dropna()
+    high_income = df[df['family_income_level'] == 'High']['short_video_hours'].dropna()
+    middle_income = df[df['family_income_level'] == 'Middle']['short_video_hours'].dropna()
+    low_income = df[df['family_income_level'] == 'Low']['short_video_hours'].dropna()
     
-    f_stat, p_val_anova = stats.f_oneway(male_data, female_data, other_data)
+    f_stat, p_val_anova = stats.f_oneway(high_income, middle_income, low_income)
     print("-" * 60)
-    print("Research question: Are there any differences in social media usage time among different gender groups?")
-    print("H0: With a confidence level of 95%, there is no difference in mean social media usage across genders.")
+    print("Research question: Are there any differences in short video consumption time among different family income levels?")
+    print("H0: With a confidence level of 95%, there is no difference in mean short video usage across income levels.")
     print("-" * 60)
     print("=== CONCLUSION ===")
     print(f"F-Statistic: {f_stat:.3f}")
     print(f"P-value: {p_val_anova:.3f}")
     if p_val_anova < 0.05:
          print(f"Reject H0 (P-value = {p_val_anova:.3f} < 0.05)")
-         print("=> Significant difference exists across gender groups.")
+         print("=> Significant difference exists across family income levels.")
     else:
          print(f"Fail to Reject H0 (P-value = {p_val_anova:.3f} >= 0.05)")
-         print("=> No significant difference across gender groups.")
+         print("=> No significant difference across family income levels.")
 
-    # 3.2.2 Chi-Square: Living Area vs Brain Rot Level
+    # 3.2.2 Chi-Square: Gender vs Brain Rot Level
     print("\n" + "="*50)
     print("[Test 2: Chi-Square Test of Independence]")
-    contingency_table = pd.crosstab(df['urban_rural'], df['brain_rot_level'])
+    contingency_table = pd.crosstab(df['gender'], df['brain_rot_level'])
     chi2, p_val_chi2, dof, _ = stats.chi2_contingency(contingency_table)
     
     print("=== Contingency Table ===")
     print(contingency_table)
     print("-" * 60)
-    print("Research question: Is there any relations between living area and brainrot level?")
-    print("H0: With a confidence level of 95%, there is no relations between living area and brainrot level.")
+    print("Research question: Is there any relationship between gender and brain rot level?")
+    print("H0: With a confidence level of 95%, there is no relationship between gender and brain rot level.")
     print("-" * 60)
     print("=== CONCLUSION ===")
     print(f"Chi-square: {chi2:.2f}")
     print(f"P-value: {p_val_chi2:.5e}")
     if p_val_chi2 < 0.05:
         print(f"Reject H0 (P-value = {p_val_chi2:.3e} < 0.05)")
-        print("=> With a confidence level of 95%, there is relations between living area and brainrot level.")
+        print("=> With a confidence level of 95%, there is a relationship between gender and brain rot level.")
     else:
         print(f"Fail to Reject H0 (P-value = {p_val_chi2:.3e} >= 0.05)")
-        print("=> With a confidence level of 95%, there is no relations between living area and brainrot level.")
+        print("=> With a confidence level of 95%, there is no relationship between gender and brain rot level.")
 
-    # 3.2.3 Welch's T-Test: Male vs Female Social Media Usage
+    # 3.2.3 Welch's T-Test: Urban vs Rural Attention Span
     print("\n" + "="*50)
     print("[Test 3: Welch's Two-Sample T-Test]")
-    t_stat_w, p_val_w = stats.ttest_ind(male_data, female_data, equal_var=False)
+    urban_data = df[df['urban_rural'] == 'Urban']['attention_span_minutes'].dropna()
+    rural_data = df[df['urban_rural'] == 'Rural']['attention_span_minutes'].dropna()
+    
+    t_stat_w, p_val_w = stats.ttest_ind(urban_data, rural_data, equal_var=False)
     print("-" * 60)
-    print("Research question: Is there a significant difference in social media usage time between males and females?")
-    print("H0: With a confidence level of 95%, mean social media usage for Males = Females.")
+    print("Research question: Is there a significant difference in attention span between students in Urban and Rural areas?")
+    print("H0: With a confidence level of 95%, mean attention span for Urban = Rural.")
     print("-" * 60)
     print("=== CONCLUSION ===")
     print(f"T-statistic: {t_stat_w:.3f}")
     print(f"P-value: {p_val_w:.3f}")
     if p_val_w < 0.05:
          print(f"Reject H0 (P-value = {p_val_w:.3f} < 0.05)")
-         print("=> Significant difference between Males and Females.")
+         print("=> Significant difference in attention span between Urban and Rural areas.")
     else:
          print(f"Fail to Reject H0 (P-value = {p_val_w:.3f} >= 0.05)")
-         print("=> No significant difference.")
+         print("=> No significant difference in attention span.")
 
-    # 3.2.4 One-Sample T-Test: Attention Span
+    # 3.2.4 One-Sample T-Test: Internet Access Hours
     print("\n" + "="*50)
     print("[Test 4: One-Sample T-Test]")
-    data_att = df['attention_span_minutes'].dropna()
-    popmean_hypo = 50
-    t_stat_1, p_val_1 = stats.ttest_1samp(data_att, popmean_hypo)
+    data_int = df['internet_access_hours'].dropna()
+    popmean_hypo = 5.0
+    t_stat_1, p_val_1 = stats.ttest_1samp(data_int, popmean_hypo)
     print("-" * 60)
-    print(f"Research question: Is the true average attention span of the population equal to {popmean_hypo} minutes?")
-    print(f"H0: With a confidence level of 95%, the true average attention span = {popmean_hypo} minutes.")
+    print(f"Research question: Is the true average daily internet access of the population equal to {popmean_hypo} hours?")
+    print(f"H0: With a confidence level of 95%, the true average internet access = {popmean_hypo} hours.")
     print("-" * 60)
     print("=== CONCLUSION ===")
     print(f"T-statistic: {t_stat_1:.3f}")
     print(f"P-value: {p_val_1:.5e}")
     if p_val_1 < 0.05:
          print(f"Reject H0 (P-value = {p_val_1:.3e} < 0.05)")
-         print(f"=> Average attention span significantly deviates from {popmean_hypo} minutes.")
+         print(f"=> Average internet access significantly deviates from {popmean_hypo} hours.")
     else:
          print(f"Fail to Reject H0 (P-value = {p_val_1:.3e} >= 0.05)")
-         print(f"=> Average attention span is approximately {popmean_hypo} minutes.")
+         print(f"=> Average internet access is approximately {popmean_hypo} hours.")
 
 # --- Task 3: Correlation & Simple Linear Regression ---
 def correlation(filepath='data/cleaned.csv', col1='social_media_hours', col2='attention_span_minutes'):

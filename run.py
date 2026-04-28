@@ -36,6 +36,8 @@ if __name__ == "__main__":
     dataCleaning(filepath=RAW_DATA_PATH)
     estimate(filepath=CLEAN_DATA_PATH)
     testings(filepath=CLEAN_DATA_PATH)
+    correlation(filepath=CLEAN_DATA_PATH)
+    linearRegression(filepath=CLEAN_DATA_PATH)
     
     print("\n" + "="*50)
     print("Execution complete. All logs saved to result.txt.")
