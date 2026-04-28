@@ -1,0 +1,99 @@
+
+==================================================
+- Part 2: Data Cleaning -
+==================================================
+
+Read Dataframe successfully. Shape: (10000, 10)
+--- MISSING VALUES REPORT ---
+                 Missing Count  Percentage (%)
+brain_rot_level            104            1.04
+
+Report Justification: 'Rows with missing values will be removed to ensure data quality.'
+==================================================
+
+--- QUALITATIVE COLUMNS ---
+ - 'brain_rot_level': Found 104 NaNs.
+
+--- QUANTITATIVE COLUMNS ---
+ - 'internet_access_hours': Found 0 NaNs, 9 outliers using Z-Score. (Skewness: -0.02)
+ - 'attention_span_minutes': Found 0 NaNs, 42 outliers using IQR. (Skewness: -0.58)
+ - 'short_video_hours': Found 0 NaNs, 147 outliers using IQR. (Skewness: 0.61)
+ - 'social_media_hours': Found 0 NaNs, 29 outliers using Z-Score. (Skewness: 0.28)
+
+--- APPLYING DELETE TREATMENT ---
+Action: Dropping a total of 306 problematic rows (NaNs + Outliers) simultaneously.
+
+Cleaned dataset exported successfully to data/cleaned.csv
+
+==================================================
+- Part 3 Task 1: Estimation -
+==================================================
+--- POINT ESTIMATES ---
+Variable: attention_span_minutes
+Sample Size (n): 9694
+Sample Mean: 53.749
+Sample Std Dev (s): 4.810
+
+--- 95% CONFIDENCE INTERVAL ---
+Result: [53.653, 53.845]
+-> Q-Q Plot saved to 'graphics/qqplot_attention_span.png'
+
+==================================================
+- Part 3 Task 2: Hypothesis Testing -
+==================================================
+
+[Test 1: One-Way ANOVA]
+------------------------------------------------------------
+Research question: Are there any differences in social media usage time among different gender groups?
+H0: With a confidence level of 95%, there is no difference in mean social media usage across genders.
+------------------------------------------------------------
+=== CONCLUSION ===
+F-Statistic: 1.436
+P-value: 0.238
+Fail to Reject H0 (P-value = 0.238 >= 0.05)
+=> No significant difference across gender groups.
+
+==================================================
+[Test 2: Chi-Square Test of Independence]
+=== Contingency Table ===
+brain_rot_level   Low  Moderate
+urban_rural                    
+Rural            3935       385
+Urban            4700       674
+------------------------------------------------------------
+Research question: Is there any relations between living area and brainrot level?
+H0: With a confidence level of 95%, there is no relations between living area and brainrot level.
+------------------------------------------------------------
+=== CONCLUSION ===
+Chi-square: 32.05
+P-value: 1.49910e-08
+Reject H0 (P-value = 1.499e-08 < 0.05)
+=> With a confidence level of 95%, there is relations between living area and brainrot level.
+
+==================================================
+[Test 3: Welch's Two-Sample T-Test]
+------------------------------------------------------------
+Research question: Is there a significant difference in social media usage time between males and females?
+H0: With a confidence level of 95%, mean social media usage for Males = Females.
+------------------------------------------------------------
+=== CONCLUSION ===
+T-statistic: -0.662
+P-value: 0.508
+Fail to Reject H0 (P-value = 0.508 >= 0.05)
+=> No significant difference.
+
+==================================================
+[Test 4: One-Sample T-Test]
+------------------------------------------------------------
+Research question: Is the true average attention span of the population equal to 50 minutes?
+H0: With a confidence level of 95%, the true average attention span = 50 minutes.
+------------------------------------------------------------
+=== CONCLUSION ===
+T-statistic: 76.750
+P-value: 0.00000e+00
+Reject H0 (P-value = 0.000e+00 < 0.05)
+=> Average attention span significantly deviates from 50 minutes.
+
+==================================================
+Execution complete. All logs saved to result.txt.
+==================================================
