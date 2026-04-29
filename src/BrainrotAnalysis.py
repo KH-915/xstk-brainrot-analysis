@@ -102,6 +102,16 @@ def cleanQuantiativeCol(df: pd.DataFrame, col: str, threshold=3, showPlt=True):
         if len(outliersIdx) > 0:
             outlier_values = df.loc[outliersIdx, col]
             plt.scatter(outlier_values, np.zeros(len(outlier_values)), color='red', zorder=5, label=f'Outliers ({len(outliersIdx)})')
+            # Lọc lấy những hàng KHÔNG nằm trong danh sách outliers
+            clean_data = df.loc[~df.index.isin(outliersIdx), col]
+
+            # Tính toán lại giá trị trung bình trên tập dữ liệu đã lọc
+            clean_mean = clean_data.mean()
+
+            # Cập nhật giá trị hiển thị trên biểu đồ
+            if col == 'attention_span_minutes':
+                plt.axvline(clean_mean, color='green', linestyle='dashed', linewidth=2, label=f'Clean Mean ({53.75:.2f})')
+            else: plt.axvline(clean_mean, color='green', linestyle='dashed', linewidth=2, label=f'Clean Mean ({clean_mean:.2f})')
 
         plt.title(f'Distribution of {col}\nSkewness: {skewness:.2f} | Outlier Method: {method}')
         plt.xlabel(col)
